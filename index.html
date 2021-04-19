@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Player Test</title>
-  </head>
-  <body>
-    <button onclick="PlaylistPlayer.stop()">stop</button>
-    <button onclick="PlaylistPlayer.pause()">pause</button>
-    <button onclick="PlaylistPlayer.play()">play</button>
-    <script src="dist/bundle.js"></script>
-    <script>
-      PlaylistPlayer.addSongs(['./freejazz.wav']);
-    </script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Player Test</title>
+    </head>
+    <body>
+        <button onclick="PlaylistPlayer.stop()">stop</button>
+        <button onclick="PlaylistPlayer.pause()">pause</button>
+        <button onclick="PlaylistPlayer.play()">play</button>
+        <script src="dist/bundle.js"></script>
+        <script>
+            PlaylistPlayer.addSongs([
+                './Ding-sound-effect.mp3',
+                './Door-knock-sound-effect.mp3',
+                './Duck-quack.mp3',
+                './freejazz.wav',
+            ]);
+        </script>
+    </body>
 </html>
