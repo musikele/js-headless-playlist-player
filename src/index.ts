@@ -1,7 +1,7 @@
 import { Machine, interpret} from 'xstate';
-import {MachineConfig, MachineEvents} from './config';
+import {myMachineConfig, MachineEvents} from './config';
 
-const playerMachine = Machine(MachineConfig, MachineEvents); 
+const playerMachine = Machine(myMachineConfig, MachineEvents); 
 
 export const playerInterpret = interpret(playerMachine)
     .onTransition(state => console.log(state.value))
