@@ -1,5 +1,5 @@
 import { MachineConfig, MachineOptions } from 'xstate';
-import { LoadEvent, PlaylistContext, PlaylistEvent } from './interfaces';
+import { GoToSongEvent, LoadEvent, PlaylistContext, PlaylistEvent } from './interfaces';
 
 export const myMachineConfig: MachineConfig<
     PlaylistContext,
@@ -10,6 +10,8 @@ export const myMachineConfig: MachineConfig<
     context: {
         songs: [],
         currentSongIndex: 0,
+        audio: new Audio(),
+        currentTimeInThisAudio: 0,
     },
     initial: 'unloaded',
     states: {
@@ -30,13 +32,16 @@ export const myMachineConfig: MachineConfig<
             },
         },
         playing: {
+            entry: ['preparePlay'],
             activities: ['play'],
             on: {
                 PAUSE: {
                     target: 'paused',
+                    actions: ['pause'],
                 },
                 STOP: {
                     target: 'stopped',
+                    actions: ['stop'],
                 },
             },
         },
@@ -50,11 +55,12 @@ export const myMachineConfig: MachineConfig<
                 },
             },
         },
-        movedToNextSong: {},
-        movedToPreviousSong: {},
-        songAdded: {},
-        songRemoved: {},
     },
+    on: {
+        GO_TO_SONG: {
+            actions: ['goToSong']
+        }
+    }
 };
 
 export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
@@ -64,34 +70,57 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             console.log('added songs: ', event.songs);
             context.songs.push(...event.songs);
         },
+        stop: (context: PlaylistContext, event: PlaylistEvent): void => {
+            //context.currentSongIndex = 0;
+            context.currentTimeInThisAudio = 0;
+            context.audio = new Audio();
+        },
+        goToSong: (context: PlaylistContext, event: PlaylistEvent): void => {
+            event = event as GoToSongEvent;
+            const {nextSong} = event;
+            if (typeof nextSong === 'number' && nextSong >= 0 && nextSong < context.songs.length) {
+                context.currentSongIndex = nextSong
+            }
+            if (!context.audio.paused) {
+                context.audio.pause()
+            }
+        },
+        preparePlay: (context: PlaylistContext, event: PlaylistEvent): void => {
+            if (context.currentSongIndex < context.songs.length) {
+                context.audio.src = context.songs[context.currentSongIndex];
+                context.audio.play();
+                context.audio.currentTime = context.currentTimeInThisAudio;
+            } else {
+                context.currentSongIndex = 0;
+            }
+        },
     },
     activities: {
         play: (context: PlaylistContext, event: unknown): (() => void) => {
-            let { currentSongIndex} = context;
-            const { songs} = context;
-            const audio = new Audio();
+            
             const endedEventListener = () => {
-              currentSongIndex++;
-              if (currentSongIndex == songs.length) {
+              context.currentSongIndex++;
+              if (context.currentSongIndex >= context.songs.length) {
                 return;
               }
-              audio.src = songs[currentSongIndex];
-              audio.play();
+              context.audio.src = context.songs[context.currentSongIndex];
+              context.audio.play();
 
-              console.log("currentSongIndex: ", currentSongIndex);
-              console.log("src: ", songs[currentSongIndex])
+              console.log("currentSongIndex: ", context.currentSongIndex);
+              console.log("src: ", context.songs[context.currentSongIndex])
             }
-            function _play() {
-                if (currentSongIndex == songs.length - 1) {
-                    console.log(`ended: ${currentSongIndex} - songs: ${songs.length}`);
-                    return;
-                }
-                audio.src = songs[currentSongIndex];
-                audio.play();
-                audio.addEventListener('ended', endedEventListener);
+
+            if (context.currentSongIndex < context.songs.length) {
+                context.audio.addEventListener('ended', endedEventListener);
+            } else {
+                context.currentSongIndex = 0;
+                context.audio.removeEventListener('ended', endedEventListener);
             }
-            _play();
-            return audio.pause;
+            return () => {
+                context.audio.pause();
+                context.currentTimeInThisAudio = context.audio.currentTime;
+                context.audio.removeEventListener('ended', endedEventListener);
+            }
         },
     },
     guards: {

@@ -7,16 +7,18 @@
         <title>Player Test</title>
     </head>
     <body>
+        <button onclick="PlaylistPlayer.prev()">prev song</button>
         <button onclick="PlaylistPlayer.stop()">stop</button>
         <button onclick="PlaylistPlayer.pause()">pause</button>
         <button onclick="PlaylistPlayer.play()">play</button>
+        <button onclick="PlaylistPlayer.next()">next song</button>
         <script src="dist/bundle.js"></script>
         <script>
             PlaylistPlayer.addSongs([
                 './Ding-sound-effect.mp3',
                 './Door-knock-sound-effect.mp3',
                 './Duck-quack.mp3',
-                //'./freejazz.wav',
+                './freejazz.wav',
             ]);
         </script>
     </body>

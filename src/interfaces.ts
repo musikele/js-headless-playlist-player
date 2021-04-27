@@ -1,6 +1,8 @@
 export interface PlaylistContext {
     songs: string[];
     currentSongIndex: number;
+    audio: HTMLAudioElement;
+    currentTimeInThisAudio: number;
 }
 
 export interface PlaylistSchema {
@@ -16,10 +18,11 @@ export interface PlaylistSchema {
     };
 }
 export type LoadEvent = { type: 'LOAD'; songs: string[] };
+export type GoToSongEvent = { type: 'GO_TO_SONG', nextSong: number };
 
 export type PlaylistEvent =
     | LoadEvent
+    | GoToSongEvent
     | { type: 'PLAY' }
     | { type: 'STOP' }
     | { type: 'PAUSE' };
-
