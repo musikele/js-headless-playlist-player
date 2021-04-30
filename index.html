@@ -12,6 +12,7 @@
         <button onclick="PlaylistPlayer.pause()">pause</button>
         <button onclick="PlaylistPlayer.play()">play</button>
         <button onclick="PlaylistPlayer.next()">next song</button>
+        <div id="songsList"></div>
         <script src="dist/bundle.js"></script>
         <script>
             PlaylistPlayer.addSongs([
@@ -20,6 +21,25 @@
                 './Duck-quack.mp3',
                 './freejazz.wav',
             ]);
+
+            document.addEventListener('playlistEvent', (evt) => {
+                document.getElementById(
+                    'songsList'
+                ).innerHTML = `<h2>${evt.detail.currentState}</h2>`;
+                const songsList = PlaylistPlayer.getSongsList();
+                const currentlyPlaying = PlaylistPlayer.getCurrentSongIndex();
+                songsList.forEach((song, index) => {
+                    if (index === currentlyPlaying) {
+                        document.getElementById('songsList').innerHTML += `
+                    <b>${index} - ${song}</b><br>
+                    `;
+                    } else {
+                        document.getElementById('songsList').innerHTML += `
+                    ${index} - ${song}<br>
+                    `;
+                    }
+                });
+            });
         </script>
     </body>
 </html>
