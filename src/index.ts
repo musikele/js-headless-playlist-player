@@ -1,20 +1,16 @@
 import { Machine, interpret } from 'xstate';
 import { myMachineConfig, MachineEvents } from './config';
+import type { Song } from './config';
+import { sendEvent } from './events';
 
 const playerMachine = Machine(myMachineConfig, MachineEvents);
 
 export const playerInterpret = interpret(playerMachine)
     .onTransition((state) => {
-        console.log(state.value);
-        console.log(state.context);
-        const event = new CustomEvent('playlistEvent', {
-            detail: {
-                currentState: state.value,
-                songs: state.context.songs,
-                currentSongIndex: state.context.currentSongIndex,
-            },
+        sendEvent({
+            value: state.value as string,
+            context: state.context,
         });
-        document.dispatchEvent(event);
     })
     .start();
 
@@ -44,10 +40,14 @@ export const addSongs = (songs: []): void => {
     playerInterpret.send('LOAD', { songs });
 };
 
-export const getSongsList = (): string[] => {
+export const getSongsList = (): Song[] => {
     return playerInterpret.machine.context.songs;
 };
 
 export const getCurrentSongIndex = (): number => {
     return playerInterpret.machine.context.currentSongIndex;
+};
+
+export const getCurrentState = (): string => {
+    return playerInterpret.state.value as string;
 };

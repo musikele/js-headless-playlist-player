@@ -15,13 +15,6 @@
         <div id="songsList"></div>
         <script src="dist/bundle.js"></script>
         <script>
-            PlaylistPlayer.addSongs([
-                './Ding-sound-effect.mp3',
-                './Door-knock-sound-effect.mp3',
-                './Duck-quack.mp3',
-                './freejazz.wav',
-            ]);
-
             document.addEventListener('playlistEvent', (evt) => {
                 document.getElementById(
                     'songsList'
@@ -31,15 +24,33 @@
                 songsList.forEach((song, index) => {
                     if (index === currentlyPlaying) {
                         document.getElementById('songsList').innerHTML += `
-                    <b>${index} - ${song}</b><br>
+                    <b>${index + 1} - ${song.name}</b><br>
                     `;
                     } else {
                         document.getElementById('songsList').innerHTML += `
-                    ${index} - ${song}<br>
+                    ${index + 1} - ${song.name}<br>
                     `;
                     }
                 });
             });
+            PlaylistPlayer.addSongs([
+                {
+                    name: 'Ding',
+                    url: './Ding-sound-effect.mp3',
+                },
+                {
+                    name: 'Knock knock',
+                    url: './Door-knock-sound-effect.mp3',
+                },
+                {
+                    name: 'Quack quack',
+                    url: './Duck-quack.mp3',
+                },
+                {
+                    name: 'Free Jazz',
+                    url: './freejazz.wav',
+                },
+            ]);
         </script>
     </body>
 </html>

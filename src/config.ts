@@ -1,7 +1,12 @@
 import { MachineConfig, MachineOptions, StateSchema } from 'xstate';
+import { sendEvent } from './events';
 
+export interface Song {
+    name: string;
+    url: string;
+}
 export interface PlaylistContext {
-    songs: string[];
+    songs: Song[];
     currentSongIndex: number;
     audio: HTMLAudioElement;
     currentTimeInThisAudio: number;
@@ -76,7 +81,7 @@ export const myMachineConfig: MachineConfig<
     },
 };
 
-export type LoadEvent = { type: 'LOAD'; songs: string[] };
+export type LoadEvent = { type: 'LOAD'; songs: Song[] };
 export type GoToSongEvent = { type: 'GO_TO_SONG'; nextSong: number };
 
 export type PlaylistEvent =
@@ -114,13 +119,16 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             }
             if (!context.audio.paused) {
                 context.audio.pause();
-                context.audio.src = context.songs[context.currentSongIndex];
+                context.audio.src = context.songs[context.currentSongIndex].url;
                 context.audio.play();
+            } else {
+                context.currentTimeInThisAudio = 0;
+                context.audio.currentTime = 0;
             }
         },
         preparePlay: (context: PlaylistContext): void => {
             if (context.currentSongIndex < context.songs.length) {
-                context.audio.src = context.songs[context.currentSongIndex];
+                context.audio.src = context.songs[context.currentSongIndex].url;
                 context.audio.play();
                 context.audio.currentTime = context.currentTimeInThisAudio;
             } else {
@@ -135,11 +143,13 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
                 if (context.currentSongIndex >= context.songs.length) {
                     return;
                 }
-                context.audio.src = context.songs[context.currentSongIndex];
-                context.audio.play();
+                context.audio.src = context.songs[context.currentSongIndex].url;
 
-                console.log('currentSongIndex: ', context.currentSongIndex);
-                console.log('src: ', context.songs[context.currentSongIndex]);
+                sendEvent({
+                    value: 'playing',
+                    context,
+                });
+                context.audio.play();
             };
 
             if (context.currentSongIndex < context.songs.length) {
@@ -161,7 +171,13 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             event: PlaylistEvent
         ): boolean => {
             event = event as LoadEvent;
-            return Boolean(event.songs && event.songs.length);
+            if (!Array.isArray(event.songs)) return false;
+            if (!event.songs.length) return false;
+            for (const song of event.songs) {
+                console.error('songs must have "url" parameters');
+                if (!song.url) return false;
+            }
+            return true;
         },
     },
     services: {},
