@@ -78,7 +78,8 @@ export const myMachineConfig: MachineConfig<
                 },
             },
         },
-        // when "paused" songs are not playing but the machine will also remember at what second we are.
+        // when "paused" songs are not playing but the machine will also
+        // remember at what second we are.
         paused: {
             on: {
                 STOP: {
@@ -115,11 +116,12 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
          */
         setSongs: (context: PlaylistContext, event: PlaylistEvent): void => {
             event = event as LoadEvent;
-            console.log('added songs: ', event.songs);
+            console.log('loaded new songs: ', event.songs);
             context.songs = event.songs;
         },
         /**
-         * If a user explicitly press pause, the machine will remember the currentTime of the current song.
+         * If a user explicitly press pause, the machine will remember the
+         * currentTime of the current song.
          * @param context
          */
         pause: (context: PlaylistContext): void => {
@@ -128,13 +130,21 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             }
         },
         /**
-         *
+         * The real "stop" action is in the returned function from the play activity.
+         * Here, we're only resetting the current time to zero. So next time
+         * we hit play it will start from start.
          * @param context
          */
         stop: (context: PlaylistContext): void => {
             context.currentTimeInThisAudio = 0;
             context.audio.pause();
         },
+        /**
+         * You can go to whatever other song by selecting the index. Remember
+         * that it's zero-based.
+         * @param context
+         * @param event
+         */
         goToSong: (context: PlaylistContext, event: PlaylistEvent): void => {
             event = event as GoToSongEvent;
             const { nextSong } = event;
@@ -154,38 +164,75 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
                 context.audio.currentTime = 0;
             }
         },
+        /**
+         * This action is performed before the "play" activity. It will set the
+         * current src song.
+         * @param context
+         */
         preparePlay: (context: PlaylistContext): void => {
+            // if the song to play is valid, load the audio and start to play it.
+            // then the xstate machine will start the "play" activity to handle
+            // exiting from thi state.
             if (context.currentSongIndex < context.songs.length) {
                 context.audio.src = context.songs[context.currentSongIndex].url;
                 context.audio.play();
                 context.audio.currentTime = context.currentTimeInThisAudio;
             } else {
+                console.log('preparePlay - else branch');
+                // if we reached the end of the
                 context.currentSongIndex = 0;
+                context.audio.currentTime = 0;
+                context.audio.src = context.songs[0].url;
             }
         },
     },
     activities: {
+        /**
+         * This is a long lasting activity. When the machine enters this
+         * state this function will be "long living".
+         * When exiting this state, the return function is invoked.
+         * @param context
+         * @returns
+         */
         play: (context: PlaylistContext): (() => void) => {
+            /**
+             * This function is called when a song ends. If another song is
+             * present in the playlist, it will be selected and played.
+             * @returns
+             */
             const endedEventListener = () => {
                 context.currentSongIndex++;
+                // If we have reached the end of the playlist, set the current
+                // playing song index to the start and send the stopped event.
                 if (context.currentSongIndex >= context.songs.length) {
+                    context.currentSongIndex = 0;
+                    sendEvent({
+                        value: 'stopped',
+                        context,
+                    });
                     return;
                 }
+                // otherwise, just play the next song
                 context.audio.src = context.songs[context.currentSongIndex].url;
-
+                context.audio.play();
                 sendEvent({
                     value: 'playing',
                     context,
                 });
-                context.audio.play();
             };
 
+            // Here's the main body of the "play" activity. If there's another
+            //  song to play, add the endedEventListener so next songs can be played.
             if (context.currentSongIndex < context.songs.length) {
                 context.audio.addEventListener('ended', endedEventListener);
             } else {
+                // If there are no more playable songs, just reset the
+                // currentSongIndex and remove the listener.
                 context.currentSongIndex = 0;
                 context.audio.removeEventListener('ended', endedEventListener);
             }
+            // This function is executed when the "playing" state is exited.
+            // it will pause audio and save the current time in the song.
             return () => {
                 context.audio.pause();
                 context.currentTimeInThisAudio = context.audio.currentTime;
@@ -194,6 +241,7 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
         },
     },
     guards: {
+        // checks that the songs are valid.
         songsAreValid: (
             context: PlaylistContext,
             event: PlaylistEvent
