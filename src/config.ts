@@ -12,36 +12,50 @@ export interface PlaylistContext {
     currentTimeInThisAudio: number;
 }
 
+export interface PlaylistSchema {
+    states: {
+        unloaded: StateSchema;
+        stopped: StateSchema;
+        playing: StateSchema;
+        paused: StateSchema;
+    };
+}
+
+/**
+ * this is the config object for the Playlist xstate machine.
+ */
 export const myMachineConfig: MachineConfig<
     PlaylistContext,
-    {
-        states: {
-            unloaded: StateSchema;
-            stopped: StateSchema;
-            playing: StateSchema;
-            paused: StateSchema;
-        };
-    },
+    PlaylistSchema,
     PlaylistEvent
 > = {
     id: 'playlistPlayer',
+    // Initial context for the xstate machine
     context: {
+        // The array of songs in the playlist. They must have an `url` property.
         songs: [],
+        // The song that is currently playing.
         currentSongIndex: 0,
+        // the Audio object that will be used to play songs
         audio: new Audio(),
+        // the current time of the current song. Updated on pause.
         currentTimeInThisAudio: 0,
     },
+    // initial state
     initial: 'unloaded',
     states: {
+        // When the State Machine is started but no song has been loaded, the
+        // machine will be in this state.
         unloaded: {
             on: {
                 LOAD: {
                     target: 'stopped',
-                    actions: ['addSongs'],
+                    actions: ['setSongs'],
                     cond: 'songsAreValid',
                 },
             },
         },
+        // Songs have been loaded but no sound is playing.
         stopped: {
             on: {
                 PLAY: {
@@ -49,6 +63,7 @@ export const myMachineConfig: MachineConfig<
                 },
             },
         },
+        // we're n this state if a song is being played.
         playing: {
             entry: ['preparePlay'],
             activities: ['play'],
@@ -63,6 +78,7 @@ export const myMachineConfig: MachineConfig<
                 },
             },
         },
+        // when "paused" songs are not playing but the machine will also remember at what second we are.
         paused: {
             on: {
                 STOP: {
@@ -74,6 +90,7 @@ export const myMachineConfig: MachineConfig<
             },
         },
     },
+    // we can move to new songs if we are stopped, playing or paused.
     on: {
         GO_TO_SONG: {
             actions: ['goToSong'],
@@ -93,16 +110,27 @@ export type PlaylistEvent =
 
 export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
     actions: {
-        addSongs: (context: PlaylistContext, event: PlaylistEvent): void => {
+        /**
+         * all songs coming from the event are added to the current playlist.
+         */
+        setSongs: (context: PlaylistContext, event: PlaylistEvent): void => {
             event = event as LoadEvent;
             console.log('added songs: ', event.songs);
-            context.songs.push(...event.songs);
+            context.songs = event.songs;
         },
+        /**
+         * If a user explicitly press pause, the machine will remember the currentTime of the current song.
+         * @param context
+         */
         pause: (context: PlaylistContext): void => {
             if (!context.audio.paused) {
                 context.currentTimeInThisAudio = context.audio.currentTime;
             }
         },
+        /**
+         *
+         * @param context
+         */
         stop: (context: PlaylistContext): void => {
             context.currentTimeInThisAudio = 0;
             context.audio.pause();
