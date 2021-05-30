@@ -50,4 +50,14 @@ export const getCurrentSongIndex = (): number => {
 
 export const getCurrentState = (): string => {
     return playerInterpret.state.value as string;
-};
+}
+
+export const isSongInPlaylist = (song: Song) =>  {
+    if (!song || !song.url) throw new Error("Song must have url property");
+    const songList = getSongsList();
+    for (let aSong of songList) {
+        if (song.url === aSong.url) return true;
+    }
+    return false;
+}
+
