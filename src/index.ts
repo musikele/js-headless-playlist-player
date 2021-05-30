@@ -65,3 +65,9 @@ export const goToLastSong = () => {
     const nextSong = playerInterpret.machine.context.songs.length -1;
     playerInterpret.send('GO_TO_SONG', { nextSong });
 }
+
+export const goToSong = (index: number) => {
+    if (index < 0 || index > playerInterpret.machine.context.songs.length -1)
+        throw new Error("Index out of bounds");
+    playerInterpret.send('GO_TO_SONG', { nextSong: index });
+}
