@@ -61,3 +61,7 @@ export const isSongInPlaylist = (song: Song) =>  {
     return false;
 }
 
+export const goToLastSong = () => {
+    const nextSong = playerInterpret.machine.context.songs.length -1;
+    playerInterpret.send('GO_TO_SONG', { nextSong });
+}
