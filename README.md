@@ -79,4 +79,14 @@ document.addEventListener('playlistEvent', (evt) => {
     //   currentSongIndex: 2
     // }
 });
+
+// is song in playlist? pass an object with url set 
+PlaylistPlayer.isSongInPlaylist({url: "./freejazz.wav"}) // true
+
+// go to last song of the playlist
+PlaylistPlayer.goToLastSong();
+
+// go to a song of the playlist
+// index must be between zero and playlist length 
+PlaylistPlayer.goToSong(3); 
 ```
