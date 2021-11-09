@@ -15,3 +15,12 @@ export const sendEvent = (state: EventType): void => {
     });
     document.dispatchEvent(event);
 };
+
+export const updateTime = (timeEvent: { currentTime: number }): void => {
+    const event = new CustomEvent('playlistEventTimeUpdate', {
+        detail: {
+            currentTime: timeEvent.currentTime,
+        },
+    });
+    document.dispatchEvent(event);
+};

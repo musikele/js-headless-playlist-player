@@ -1,5 +1,5 @@
 import { MachineConfig, MachineOptions, StateSchema } from 'xstate';
-import { sendEvent } from './events';
+import { sendEvent, updateTime } from './events';
 
 export interface Song {
     name: string;
@@ -224,6 +224,12 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             // Here's the main body of the "play" activity. If there's another
             //  song to play, add the endedEventListener so next songs can be played.
             if (context.currentSongIndex < context.songs.length) {
+                context.audio.addEventListener('timeupdate', () => {
+                    updateTime({
+                        currentTime: context.audio.currentTime,
+                    });
+                });
+
                 context.audio.addEventListener('ended', endedEventListener);
             } else {
                 // If there are no more playable songs, just reset the

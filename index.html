@@ -12,7 +12,10 @@
         <button onclick="PlaylistPlayer.pause()">pause</button>
         <button onclick="PlaylistPlayer.play()">play</button>
         <button onclick="PlaylistPlayer.next()">next song</button>
+        
         <div id="songsList"></div>
+        <div id="time">0</div>
+
         <script src="dist/bundle.js"></script>
         <script>
             document.addEventListener('playlistEvent', (evt) => {
@@ -33,6 +36,11 @@
                     }
                 });
             });
+
+            document.addEventListener('playlistEventTimeUpdate', (evt) => {
+                document.getElementById('time').innerHTML = evt.detail.currentTime;
+            })
+
             PlaylistPlayer.addSongs([
                 {
                     name: 'Ding',

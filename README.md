@@ -80,6 +80,13 @@ document.addEventListener('playlistEvent', (evt) => {
     // }
 });
 
+
+// to know the current time of the song: 
+document.addEventListener('playlistEventTimeUpdate', (evt) => {
+    console.log(evt.detail.currentTime) // returns the number of seconds starting from 0
+})
+
+
 // is song in playlist? pass an object with url set 
 PlaylistPlayer.isSongInPlaylist({url: "./freejazz.wav"}) // true
 
