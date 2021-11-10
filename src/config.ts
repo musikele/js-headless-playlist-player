@@ -96,18 +96,23 @@ export const myMachineConfig: MachineConfig<
         GO_TO_SONG: {
             actions: ['goToSong'],
         },
+        GO_TO_SECOND: {
+            actions: ['goToSecond'],
+        },
     },
 };
 
 export type LoadEvent = { type: 'LOAD'; songs: Song[] };
 export type GoToSongEvent = { type: 'GO_TO_SONG'; nextSong: number };
+export type GoToSecondEvent = { type: 'GO_TO_SECOND'; second: number };
 
 export type PlaylistEvent =
     | LoadEvent
     | GoToSongEvent
     | { type: 'PLAY' }
     | { type: 'STOP' }
-    | { type: 'PAUSE' };
+    | { type: 'PAUSE' }
+    | GoToSecondEvent;
 
 export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
     actions: {
@@ -164,6 +169,16 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
                 context.audio.currentTime = 0;
             }
         },
+        goToSecond: (context: PlaylistContext, event: PlaylistEvent): void => {
+            event = event as GoToSecondEvent;
+            const duration = context.audio.duration;
+            const { second } = event;
+            if (!second) console.error('cannot move to null second');
+            if (second >= 0 && second <= duration) {
+                context.audio.currentTime = event.second;
+            }
+        },
+
         /**
          * This action is performed before the "play" activity. It will set the
          * current src song.
@@ -227,6 +242,7 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
                 context.audio.addEventListener('timeupdate', () => {
                     updateTime({
                         currentTime: context.audio.currentTime,
+                        duration: context.audio.duration,
                     });
                 });
 

@@ -15,6 +15,9 @@
         
         <div id="songsList"></div>
         <div id="time">0</div>
+        <label>Time<input type="range" id="timeslider" name="timeslider" min="0" max="100" value="0"></label>
+        <br>
+        <label>Volume<input type="range" id="volume" name="volume" min="0" max="100" value="100"></label>
 
         <script src="dist/bundle.js"></script>
         <script>
@@ -37,8 +40,15 @@
                 });
             });
 
+            let currentSongDuration = 0;
             document.addEventListener('playlistEventTimeUpdate', (evt) => {
                 document.getElementById('time').innerHTML = evt.detail.currentTime;
+                document.getElementById('timeslider').value = evt.detail.currentTime * 100 / evt.detail.duration;
+                currentSongDuration = evt.detail.duration;
+            });
+
+            document.getElementById('timeslider').addEventListener('change', (evt) => {
+                PlaylistPlayer.moveToSecondInCurrentSong(evt.target.value * currentSongDuration / 100);
             })
 
             PlaylistPlayer.addSongs([

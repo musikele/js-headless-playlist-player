@@ -96,4 +96,7 @@ PlaylistPlayer.goToLastSong();
 // go to a song of the playlist
 // index must be between zero and playlist length 
 PlaylistPlayer.goToSong(3); 
+
+//Go to a given second in the current song 
+PlaylistPlayer.moveToSecondInCurrentSong(6);
 ```
