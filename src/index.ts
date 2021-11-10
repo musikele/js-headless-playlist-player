@@ -52,19 +52,19 @@ export const getCurrentState = (): string => {
     return playerInterpret.state.value as string;
 }
 
-export const isSongInPlaylist = (song: Song) =>  {
-    if (!song || !song.url) throw new Error("Song must have url property");
+export const isSongInPlaylist = (song: Song): boolean => {
+    if (!song || !song.url) throw new Error('Song must have url property');
     const songList = getSongsList();
-    for (let aSong of songList) {
+    for (const aSong of songList) {
         if (song.url === aSong.url) return true;
     }
     return false;
-}
+};
 
-export const goToLastSong = () => {
-    const nextSong = playerInterpret.machine.context.songs.length -1;
+export const goToLastSong = (): void => {
+    const nextSong = playerInterpret.machine.context.songs.length - 1;
     playerInterpret.send('GO_TO_SONG', { nextSong });
-}
+};
 
 export const goToSong = (index: number): void => {
     if (index < 0 || index > playerInterpret.machine.context.songs.length - 1)
@@ -74,4 +74,8 @@ export const goToSong = (index: number): void => {
 
 export const moveToSecondInCurrentSong = (second: number): void => {
     playerInterpret.send('GO_TO_SECOND', { second });
+};
+
+export const setVolume = (volume: number): void => {
+    playerInterpret.send('SET_VOLUME', { volume });
 };

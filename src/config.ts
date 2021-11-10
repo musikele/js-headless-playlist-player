@@ -10,6 +10,7 @@ export interface PlaylistContext {
     currentSongIndex: number;
     audio: HTMLAudioElement;
     currentTimeInThisAudio: number;
+    volume: number;
 }
 
 export interface PlaylistSchema {
@@ -40,6 +41,8 @@ export const myMachineConfig: MachineConfig<
         audio: new Audio(),
         // the current time of the current song. Updated on pause.
         currentTimeInThisAudio: 0,
+        // volume
+        volume: 1,
     },
     // initial state
     initial: 'unloaded',
@@ -99,12 +102,16 @@ export const myMachineConfig: MachineConfig<
         GO_TO_SECOND: {
             actions: ['goToSecond'],
         },
+        SET_VOLUME: {
+            actions: ['setVolume'],
+        },
     },
 };
 
 export type LoadEvent = { type: 'LOAD'; songs: Song[] };
 export type GoToSongEvent = { type: 'GO_TO_SONG'; nextSong: number };
 export type GoToSecondEvent = { type: 'GO_TO_SECOND'; second: number };
+export type SetVolumeEvent = { type: 'SET_VOLUME'; volume: number };
 
 export type PlaylistEvent =
     | LoadEvent
@@ -112,7 +119,8 @@ export type PlaylistEvent =
     | { type: 'PLAY' }
     | { type: 'STOP' }
     | { type: 'PAUSE' }
-    | GoToSecondEvent;
+    | GoToSecondEvent
+    | SetVolumeEvent;
 
 export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
     actions: {
@@ -173,10 +181,22 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
             event = event as GoToSecondEvent;
             const duration = context.audio.duration;
             const { second } = event;
-            if (!second) console.error('cannot move to null second');
+            if (!typeof second == null || typeof second == undefined) console.error('cannot move to null second');
             if (second >= 0 && second <= duration) {
                 context.audio.currentTime = event.second;
             }
+        },
+
+        setVolume: (context: PlaylistContext, event: PlaylistEvent): void => {
+            event = event as SetVolumeEvent;
+            const { volume } = event;
+            if (!volume || volume < 0 || volume > 1)
+                console.error(
+                    'Volume value not valid. Must be between 0 and 1. received value is ',
+                    volume
+                );
+            context.volume = volume;
+            context.audio.volume = volume;
         },
 
         /**
@@ -187,7 +207,7 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
         preparePlay: (context: PlaylistContext): void => {
             // if the song to play is valid, load the audio and start to play it.
             // then the xstate machine will start the "play" activity to handle
-            // exiting from thi state.
+            // exiting from this state.
             if (context.currentSongIndex < context.songs.length) {
                 context.audio.src = context.songs[context.currentSongIndex].url;
                 context.audio.play();
@@ -199,6 +219,7 @@ export const MachineEvents: MachineOptions<PlaylistContext, PlaylistEvent> = {
                 context.audio.currentTime = 0;
                 context.audio.src = context.songs[0].url;
             }
+            context.audio.volume = context.volume;
         },
     },
     activities: {

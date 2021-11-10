@@ -51,6 +51,10 @@
                 PlaylistPlayer.moveToSecondInCurrentSong(evt.target.value * currentSongDuration / 100);
             })
 
+            document.getElementById('volume').addEventListener('change', (evt) => {
+                PlaylistPlayer.setVolume(evt.target.value/100);
+            });
+
             PlaylistPlayer.addSongs([
                 {
                     name: 'Ding',

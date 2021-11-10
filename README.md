@@ -98,5 +98,10 @@ PlaylistPlayer.goToLastSong();
 PlaylistPlayer.goToSong(3); 
 
 //Go to a given second in the current song 
-PlaylistPlayer.moveToSecondInCurrentSong(6);
+PlaylistPlayer.moveToSecondInCurrentSong(6); 
+// ==> will jump to 6th second
+
+//Set volume for the playlist 
+PlaylistPlayer.setVolume(0.5) 
+// ==> will play at half volume
 ```
